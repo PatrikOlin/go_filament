@@ -2,7 +2,6 @@ package models
 
 import (
 	"os"
-	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
@@ -16,7 +15,6 @@ func SetupModels() *gorm.DB {
 		panic("Error loading .env file")
 	}
 
-	fmt.Println(os.ExpandEnv("host=${HOST} user=${USER} dbname=${DBNAME} sslmode=disable password=${PASSWORD}"))
 	db, err := gorm.Open("postgres", os.ExpandEnv("host=${HOST} user=${USER} dbname=${DBNAME} sslmode=disable password=${PASSWORD}"))
 
 	if err != nil {
