@@ -61,7 +61,6 @@ func CreateSpool(c *gin.Context) {
 		CreatedAt: time.Now(),				 
 		UpdatedAt: time.Now(),
 		DeletedAt: nil,
-		LastUsedAt: nil,					 
 	}
 	db.Create(&spool)
 
@@ -121,7 +120,7 @@ func DeleteSpool(c *gin.Context) {
 		return
 	}
 
-	db.Delete(&spool)
+	db.Delete(&spool)						 
 
 	c.JSON(http.StatusOK, gin.H{"data": true})
 }
