@@ -4,24 +4,34 @@ import (
 	"os"
 	"io"
 	"time"
+	"path/filepath"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/PatrikOlin/go_filament/models"
 	"github.com/PatrikOlin/go_filament/controllers"
 )
 
+func Init() {
+	gin.SetMode(gin.ReleaseMode)
+	
+	t := time.Now()
+
+	logpath := filepath.Join(".", "logs")
+	os.MkdirAll(logpath, os.ModePerm)
+	f, _ := os.OpenFile(logpath + "/spools_gin" + t.Format("20060102")  + ".log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	gin.DefaultWriter = io.Writer(f)
+
+}
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	Init()
 
 	r := gin.Default()
 
 	db := models.SetupModels()
 
-	t := time.Now()
-	f, _ := os.Create("spools_gin" + t.Format(time.RFC3339)  + ".log")
-	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
-
+	
 	r.Use(func(c *gin.Context) {
 		c.Set("db", db)
 		c.Next()
