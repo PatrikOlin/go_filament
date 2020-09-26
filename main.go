@@ -1,25 +1,25 @@
 package main
 
 import (
-	"os"
 	"io"
-	"time"
+	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/PatrikOlin/go_filament/models"
 	"github.com/PatrikOlin/go_filament/controllers"
+	"github.com/PatrikOlin/go_filament/models"
 )
 
 func Init() {
 	gin.SetMode(gin.ReleaseMode)
-	
+
 	t := time.Now()
 
 	logpath := filepath.Join(".", "logs")
 	os.MkdirAll(logpath, os.ModePerm)
-	f, _ := os.OpenFile(logpath + "/spools_gin" + t.Format("20060102")  + ".log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, _ := os.OpenFile(logpath+"/spools_gin"+t.Format("20060102")+".log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	gin.DefaultWriter = io.Writer(f)
 
 }
@@ -31,7 +31,6 @@ func main() {
 
 	db := models.SetupModels()
 
-	
 	r.Use(func(c *gin.Context) {
 		c.Set("db", db)
 		c.Next()
@@ -40,12 +39,15 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	r.GET("/spools", controllers.FindSpools)
-	r.POST("/spools", controllers.CreateSpool)
-	// r.GET("/spools/:id", controllers.FindSpoolById)
-	r.GET("/spools/:tag", controllers.FindSpoolByTag)
-	r.PATCH("/spools/:tag", controllers.UpdateSpool)
-	r.DELETE("/spools/:tag", controllers.DeleteSpool)
+	v1 := r.Group("v1/")
+	{
+		v1.GET("/spools", controllers.FindSpools)
+		v1.POST("/spools", controllers.CreateSpool)
+		// r.GET("/spools/:id", controllers.FindSpoolById)
+		v1.GET("/spools/:tag", controllers.FindSpoolByTag)
+		v1.PATCH("/spools/:tag", controllers.UpdateSpool)
+		v1.DELETE("/spools/:tag", controllers.DeleteSpool)
+	}
 
 	r.Run()
 }

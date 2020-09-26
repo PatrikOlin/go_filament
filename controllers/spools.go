@@ -1,9 +1,9 @@
-package controllers							 
+package controllers
 
 import (
-	"net/http"								 
+	"net/http"	   
 	"time"
-											 
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 
@@ -11,15 +11,19 @@ import (
 	"github.com/PatrikOlin/go_filament/util"
 )
 
-type CreateSpoolInput struct {
-	Brand string `json:"brand" binding:"required"`
-	Name string `json:"name" binding:"required"`
-	Weight int `json:"weight"`
-	SpoolWeight int `json:"spool_weight"`
-	Color string `json:"color"`
-	Material string `json:"material"`
-	Notes string `json:"notes"`
-}
+// type CreateSpoolInput struct {
+// 	Brand string `json:"brand" binding:"required"`
+// 	Name string `json:"name" binding:"required"`
+// 	Weight int `json:"weight"`
+// 	SpoolWeight int `json:"spool_weight"`
+// 	Color string `json:"color"`
+// 	Material string `json:"material"`
+// 	NozzleTemp int `json:"nozzle_temp"`
+// 	PlateTemp int `json:"plate_temp"`
+// 	PricePerKg int `json:"price_per_kg"`
+// 	Superpowers []models.Superpower `json:"superpowers"`
+// 	Notes string `json:"notes"`
+// }
 
 type UpdateSpoolInput struct {
 	Brand string `json:"brand" `
@@ -28,12 +32,16 @@ type UpdateSpoolInput struct {
 	SpoolWeight int `json:"spool_weight"`
 	Color string `json:"color"`
 	Material string `json:"material"`
+	NozzleTemp int `json:"nozzle_temp"`
+	PlateTemp int `json:"plate_temp"`
+	PricePerKg int `json:"price_per_kg"`
+	Superpowers []string `json:"superpowers"`
 	Notes string `json:"notes"`
 }
 
 func FindSpools(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
-
+				   
 	var spools []models.Spool
 	db.Find(&spools)
 
@@ -43,7 +51,7 @@ func FindSpools(c *gin.Context) {
 func CreateSpool(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var input CreateSpoolInput
+	var input models.Spool
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -57,12 +65,18 @@ func CreateSpool(c *gin.Context) {
 		SpoolWeight: input.SpoolWeight,
 		Color: input.Color,
 		Material: input.Material,
+		NozzleTemp: input.NozzleTemp,
+		PlateTemp: input.PlateTemp,
+		PricePerKg: input.PricePerKg,
 		Notes: input.Notes,					 
+		Superpowers: input.Superpowers,
 		CreatedAt: time.Now(),				 
 		UpdatedAt: time.Now(),
 		DeletedAt: nil,
 	}
-	db.Create(&spool)
+
+	db.Omit("Superpower").Create(&spool)
+
 
 	c.JSON(http.StatusOK, gin.H{"data": spool})
 }
