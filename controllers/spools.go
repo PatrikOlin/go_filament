@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"net/http"	   
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -26,24 +26,24 @@ import (
 // }
 
 type UpdateSpoolInput struct {
-	Brand string `json:"brand" `
-	Name string `json:"name" `
-	Weight int `json:"weight"`
-	SpoolWeight int `json:"spool_weight"`
-	Color string `json:"color"`
-	Material string `json:"material"`
-	NozzleTemp int `json:"nozzle_temp"`
-	PlateTemp int `json:"plate_temp"`
-	PricePerKg int `json:"price_per_kg"`
+	Brand       string   `json:"brand" `
+	Name        string   `json:"name" `
+	Weight      int      `json:"weight"`
+	SpoolWeight int      `json:"spool_weight"`
+	Color       string   `json:"color"`
+	Material    string   `json:"material"`
+	NozzleTemp  int      `json:"nozzle_temp"`
+	PlateTemp   int      `json:"plate_temp"`
+	PricePerKg  int      `json:"price_per_kg"`
 	Superpowers []string `json:"superpowers"`
-	Notes string `json:"notes"`
+	Notes       string   `json:"notes"`
 }
 
-func FindSpools(c *gin.Context) {
+func GetAllSpools(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
-				   
+
 	var spools []models.Spool
-	db.Find(&spools)
+	db.Preload("Brand").Preload("Superpowers").Find(&spools)
 
 	c.JSON(http.StatusOK, gin.H{"data": spools})
 }
@@ -58,25 +58,24 @@ func CreateSpool(c *gin.Context) {
 	}
 
 	spool := models.Spool{
-		Tag: util.GenerateTag(),
-		Brand: input.Brand,
-		Name: input.Name,
-		Weight: input.Weight,
+		Tag:         util.GenerateTag(),
+		Brand:       input.Brand,
+		Name:        input.Name,
+		Weight:      input.Weight,
 		SpoolWeight: input.SpoolWeight,
-		Color: input.Color,
-		Material: input.Material,
-		NozzleTemp: input.NozzleTemp,
-		PlateTemp: input.PlateTemp,
-		PricePerKg: input.PricePerKg,
-		Notes: input.Notes,					 
+		Color:       input.Color,
+		Material:    input.Material,
+		NozzleTemp:  input.NozzleTemp,
+		PlateTemp:   input.PlateTemp,
+		PricePerKg:  input.PricePerKg,
+		Notes:       input.Notes,
 		Superpowers: input.Superpowers,
-		CreatedAt: time.Now(),				 
-		UpdatedAt: time.Now(),
-		DeletedAt: nil,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		DeletedAt:   nil,
 	}
 
 	db.Omit("Superpower").Create(&spool)
-
 
 	c.JSON(http.StatusOK, gin.H{"data": spool})
 }
@@ -94,17 +93,17 @@ func FindSpoolById(c *gin.Context) {
 }
 
 func FindSpoolByTag(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)		 
+	db := c.MustGet("db").(*gorm.DB)
 
 	var spool models.Spool
-	if err := db.Where("tag = ?", c.Param("tag")).First(&spool).Error; err != nil {
+	if err := db.Preload("Brand").Preload("Superpowers").Where("tag = ?", c.Param("tag")).First(&spool).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Spool not found"})
 		return
-	}										 
+	}
 
 	c.JSON(http.StatusOK, gin.H{"data": spool})
 }
-
+				
 func UpdateSpool(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -113,17 +112,17 @@ func UpdateSpool(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Spool not found"})
 		return
 	}
-											 
+
 	var input UpdateSpoolInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-											 
+
 	db.Model(&spool).Updates(input)
 
 	c.JSON(http.StatusOK, gin.H{"data": spool})
-}											 
+}
 
 func DeleteSpool(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
@@ -134,7 +133,7 @@ func DeleteSpool(c *gin.Context) {
 		return
 	}
 
-	db.Delete(&spool)						 
+	db.Delete(&spool)
 
 	c.JSON(http.StatusOK, gin.H{"data": true})
 }

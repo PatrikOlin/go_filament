@@ -9,9 +9,10 @@ import (
 type Spool struct {
 	ID uint `json:"id" gorm:"primary_key, AUTO_INCREMENT"`
 	Tag string `json:"tag"`
-	Brand string `json:"brand"`
-	Name string `json:"name"`
-	Weight int `json:"weight"`
+	BrandID int `json:"brandID"`					 
+	Brand Brand `json:"brand"`
+	Name string `json:"name"`						 
+	Weight int `json:"weight"`						 
 	SpoolWeight int `json:"spool_weight"`
 	Color string `json:"color"`
 	Material string `json:"material"`
@@ -29,3 +30,8 @@ type Superpower struct {
 	ID uint `json:"id" gorm:"primary_key, AUTO_INCREMENT"`
 	Name string `json:"superpower" gorm:"<-:false"`
 }							  
+
+type Brand struct {
+	ID uint `json:"id"`
+	Name string `json:"brand"`
+}
