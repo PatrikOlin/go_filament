@@ -51,15 +51,33 @@ func GetAllSpools(c *gin.Context) {
 func CreateSpool(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var input models.Spool
+	var input UpdateSpoolInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	var brand models.Brand
+	if res := db.Where("name = ?", input.Brand).FirstOrCreate(&brand,
+		models.Brand{Name: input.Brand}); res.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": res.Error})
+		return
+	}
+
+	var powers []models.Superpower
+	for _, pwr := range input.Superpowers {
+		var pow models.Superpower
+		if err := db.Where("name = ?", pwr).FirstOrCreate(&pow,
+			models.Superpower{Name: pwr}); err.Error != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error})
+			return
+		}
+		powers = append(powers, pow)
+	}
+
 	spool := models.Spool{
 		Tag:         util.GenerateTag(),
-		Brand:       input.Brand,
+		Brand:       brand,
 		Name:        input.Name,
 		Weight:      input.Weight,
 		SpoolWeight: input.SpoolWeight,
@@ -69,13 +87,16 @@ func CreateSpool(c *gin.Context) {
 		PlateTemp:   input.PlateTemp,
 		PricePerKg:  input.PricePerKg,
 		Notes:       input.Notes,
-		Superpowers: input.Superpowers,
+		Superpowers: powers,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 		DeletedAt:   nil,
 	}
 
-	db.Omit("Superpower").Create(&spool)
+	if err := db.Create(&spool).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"data": spool})
 }
@@ -103,7 +124,7 @@ func FindSpoolByTag(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": spool})
 }
-				
+
 func UpdateSpool(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
